@@ -20,12 +20,14 @@ public class ToDo {
 	// LocalDateのようなオブジェクトに対応するプロパティは、ObjectProperty<LocalDate>
     private ObjectProperty<LocalDate> date = new SimpleObjectProperty<>();
 	private BooleanProperty completed = new SimpleBooleanProperty();
+	private IntegerProperty priority = new SimpleIntegerProperty();
 
-	public ToDo(int id, String title, LocalDate date, boolean completed) {
+	public ToDo(int id, String title, LocalDate date, boolean completed, int priority) {
 		this.id.set(id);
 		this.title.set(title);
 		this.date.set(date);
 		this.completed.set(completed);
+		this.priority.set(priority);
 	}
 
 	/**
@@ -62,7 +64,15 @@ public class ToDo {
 	public void setCompleted(boolean completed) {
 		this.completed.set(completed);
 	}
-	
+
+	public int getPriority() {
+		return priority.get();
+	}
+
+	public void setPriority(int priority) {
+		this.priority.set(priority);
+	}
+
 	/**
 	 * プロパティを返すメソッドが必要です。
 	 */
@@ -80,5 +90,9 @@ public class ToDo {
 	
 	public ObjectProperty<LocalDate> dateProperty() {
 		return date;
+	}
+	
+	public IntegerProperty priorityProperty() {
+		return priority;
 	}
 }

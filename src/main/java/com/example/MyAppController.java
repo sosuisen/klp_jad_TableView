@@ -23,12 +23,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.util.converter.IntegerStringConverter;
 
 public class MyAppController {
 	private ArrayList<ToDo> todos = new ArrayList<>() {
 		{
-			add(new ToDo(0, "Design", LocalDate.parse("2022-12-01"), true));
-			add(new ToDo(1, "Implementation", LocalDate.parse("2022-12-07"), false));
+			add(new ToDo(0, "Design", LocalDate.parse("2022-12-01"), true, 1));
+			add(new ToDo(1, "Implementation", LocalDate.parse("2022-12-07"), false, 1));
 		}
 	};
 
@@ -50,6 +51,9 @@ public class MyAppController {
 	private TableColumn<ToDo, LocalDate> dateCol;
 
 	@FXML
+	private TableColumn<ToDo, Integer> priorityCol;
+
+	@FXML
 	private TableColumn<ToDo, ToDo> deleteCol;
 
 	@FXML
@@ -62,6 +66,9 @@ public class MyAppController {
 	private TextField titleField;
 
 	@FXML
+	private TextField headerPriorityField;
+
+	@FXML
 	private MenuItem menuItemAbout;
 
 	@FXML
@@ -70,16 +77,28 @@ public class MyAppController {
 	// TableViewのObservableListの型パラメータは、データクラスToDoを用います。
 	private ObservableList<ToDo> tableViewItems;
 
-	public ToDo create(String title, LocalDate date) {
+	public ToDo create(String title, LocalDate date, int priority) {
 		int newId;
 		if (todos.size() > 0)
 			newId = todos.stream().max((todo1, todo2) -> todo1.getId() - todo2.getId()).get().getId() + 1;
 		else
 			newId = 0;
-		var newToDo = new ToDo(newId, title, date, false);
+		var newToDo = new ToDo(newId, title, date, false, priority);
 		todos.add(newToDo);
 
 		return newToDo;
+	}
+	
+	private int getPriority(TextField tf) {
+		String txt = tf.getText();
+		int priority;
+		try {
+			priority = Integer.parseInt(txt);
+		} catch (NumberFormatException nfe) {
+			priority = 1;
+			tf.setText("1");
+		}
+		return priority;
 	}
 
 	private void showInfo(String txt) {
@@ -109,6 +128,7 @@ public class MyAppController {
 		completedCol.setCellValueFactory(new PropertyValueFactory<>("completed"));
 		titleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
 		dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
+		priorityCol.setCellValueFactory(new PropertyValueFactory<>("priority"));
 		// 削除ボタンのように、ToDoクラスのフィールドと関係ないセルにおいて、
 		// 次のラムダ式をセル値ファクトリとすることで、該当セルに対応するToDoオブジェクトを
 		// セルファクトリのほうへ渡すことができます。
@@ -125,6 +145,8 @@ public class MyAppController {
 		titleCol.setCellFactory(TextFieldTableCell.forTableColumn());
 		// セルファクトリとなるLocalDateTableCellクラスを自作。LocalDateTableCell.java参照
 		dateCol.setCellFactory(LocalDateTableCell<ToDo>::new);
+		// フィールドがIngeterPropertyでセル側がStringPropertyなので、変換が必要
+		priorityCol.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
 		// セルファクトリのラムダ式を自作
 		deleteCol.setCellFactory(param -> new TableCell<ToDo, ToDo>() {
 			private final Button deleteBtn = new Button("🗑");
@@ -185,7 +207,7 @@ public class MyAppController {
 			if (title.equals(""))
 				return;
 			LocalDate localDate = datePicker.getValue(); // 2022-12-01
-			ToDo newToDo = create(title, localDate);
+			ToDo newToDo = create(title, localDate, getPriority(headerPriorityField));
 			tableViewItems.add(newToDo);
 			titleField.setText("");
 			tableView.sort();
